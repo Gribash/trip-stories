@@ -52,8 +52,8 @@ figure.ph:not(.full):not(.ext) img{max-height:86vh;object-fit:contain;background
 .row img{aspect-ratio:3/4;object-fit:cover;height:100%}
 .gallery .imgs{display:flex;gap:6px;overflow-x:auto;scroll-snap-type:x mandatory;margin:0 -20px;padding:0 20px 6px;scrollbar-width:thin}
 .gallery img{flex:0 0 auto;width:min(68vw,320px);aspect-ratio:3/4;object-fit:cover;scroll-snap-align:center}
-.vid video{max-height:80vh;background:#000}
-.vid.vert video{width:auto;max-width:100%;margin:0 auto}
+.vid video{max-height:80vh;background:#000;object-fit:contain}
+.vid.vert video{margin:0 auto}
 .tag{display:inline-block;font:600 12px/1 var(--sans);background:var(--red);color:#fff;padding:3px 6px;border-radius:4px;margin-right:4px;vertical-align:1px}
 .credit{display:block;font-size:12px;opacity:.8;margin-top:2px}
 .compare .imgs{display:grid;grid-template-columns:1fr 1fr;gap:6px}
@@ -82,6 +82,7 @@ footer{max-width:760px;margin:0 auto;padding:30px 20px 60px;font:13px/1.5 var(--
 #lb .x{position:absolute;z-index:2;top:8px;right:12px;color:#fff;font:32px/1 var(--sans);background:none;border:0;cursor:pointer;padding:8px}
 #lb .nv{position:absolute;top:0;bottom:0;width:22%;cursor:pointer}
 #lb .l{left:0}#lb .r{right:0}
+@supports (height:1svh){.hero{min-height:92svh}figure.full img{max-height:92svh}figure.ph:not(.full):not(.ext) img{max-height:86svh}.vid video{max-height:80svh}#map.live{height:min(70svh,520px)}#lb img{max-height:84svh}}
 </style>
 <style>
 #gate{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;font-family:var(--sans)}
@@ -104,20 +105,23 @@ async function derive(p){const b=await crypto.subtle.importKey('raw',new TextEnc
   return crypto.subtle.deriveKey({name:'PBKDF2',salt:hex(SALT),iterations:ITER,hash:'SHA-256'},b,{name:'AES-CBC',length:256},false,['decrypt'])}
 async function dec(url){const r=await fetch(url);if(!r.ok)throw new Error(r.status);const b=new Uint8Array(await r.arrayBuffer());
   return crypto.subtle.decrypt({name:'AES-CBC',iv:b.slice(0,16)},KEY,b.slice(16))}
-const done=new WeakMap();
-function ensure(el){if(done.has(el))return done.get(el);
+const done=new WeakMap();let active=0;const queue=[];
+function slot(){return new Promise(r=>{if(active<4){active++;r()}else queue.push(r)})}
+function free(){const n=queue.shift();if(n)n();else active--}
+function ensure(el){if(done.has(el))return done.get(el);const p=slot().then(()=>ensure0(el)).finally(free);done.set(el,p);return p}
+function ensure0(el){
   const jobs=[];
   if(el.dataset.esrc)jobs.push(dec(el.dataset.esrc).then(d=>{el.src=URL.createObjectURL(new Blob([d],{type:el.tagName==='VIDEO'?'video/mp4':'image/jpeg'}))}));
   if(el.dataset.eposter)jobs.push(dec(el.dataset.eposter).then(d=>{el.poster=URL.createObjectURL(new Blob([d],{type:'image/jpeg'}))}));
   if(el.dataset.ebg)jobs.push(dec(el.dataset.ebg).then(d=>{el.style.backgroundImage='url('+URL.createObjectURL(new Blob([d],{type:'image/jpeg'}))+')'}));
-  const p=Promise.all(jobs).catch(()=>{});done.set(el,p);return p}
+  return Promise.all(jobs).catch(()=>{})}
 async function unlock(p){KEY=await derive(p);
-  const data=JSON.parse(new TextDecoder().decode(await dec('payload.bin')));
+  const data=JSON.parse(new TextDecoder().decode(await dec('payload.bin?v=6a81f0b51c76')));
   try{localStorage.setItem('trip-p',p)}catch(e){}
   document.title=data.title;document.getElementById('gate').remove();
   document.getElementById('app').outerHTML=data.body;window.__MAP=data.map;
   const els=[...document.querySelectorAll('[data-esrc],[data-eposter],[data-ebg]')];
-  els.filter(e=>e.dataset.ebg||e.closest('#map')).forEach(ensure);
+  els.filter(e=>e.dataset.ebg||(e.closest('#map')&&!window.L)).forEach(ensure);
   if('IntersectionObserver' in window){const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){io.unobserve(e.target);ensure(e.target)}}),{rootMargin:'1200px 0px'});els.forEach(e=>io.observe(e))}
   else els.forEach(ensure);
   app();if(location.hash.length>1){const h=decodeURIComponent(location.hash.slice(1));if(!h.startsWith('p='))document.getElementById(h)?.scrollIntoView()}}
