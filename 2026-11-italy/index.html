@@ -115,7 +115,7 @@ function ensure0(el){
   if(el.dataset.ebg)jobs.push(dec(el.dataset.ebg).then(d=>{el.style.backgroundImage='url('+URL.createObjectURL(new Blob([d],{type:'image/jpeg'}))+')'}));
   return Promise.all(jobs).catch(()=>{})}
 async function unlock(p){KEY=await derive(p);
-  const data=JSON.parse(new TextDecoder().decode(await dec('payload.bin?v=1c4d8d71fa18')));
+  const data=JSON.parse(new TextDecoder().decode(await dec('payload.bin?v=d529e5d7ae1d')));
   try{localStorage.setItem('trip-p',p)}catch(e){}
   document.title=data.title;document.getElementById('gate').remove();
   document.getElementById('app').outerHTML=data.body;window.__MAP=data.map;
