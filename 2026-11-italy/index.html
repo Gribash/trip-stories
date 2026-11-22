@@ -2,8 +2,6 @@
 <html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex,nofollow,noarchive"><meta name="referrer" content="no-referrer">
 <title>Наше путешествие</title>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <style>
 :root{--bg:#f6f1e8;--paper:#fffdf8;--fg:#24201b;--mut:#7c7266;--line:#e4dccd;--red:#9b2d20;--ochre:#c08a2e;--box:#efe6d6;
   --serif:"Iowan Old Style","Palatino Linotype",Palatino,"PT Serif",Georgia,serif;--sans:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif}
@@ -69,7 +67,7 @@ aside.box{background:var(--box);border-radius:10px;padding:20px 20px 4px;margin:
 #map{border-radius:8px;border:1px solid var(--line);margin-top:26px;margin-bottom:22px;z-index:0;overflow:hidden}
 #map{overflow-x:auto;-webkit-overflow-scrolling:touch}
 #map img{display:block;width:100%;height:auto}
-@media (max-width:700px){#map img{width:820px;max-width:none}}
+@media (max-width:700px){#map img{width:1000px;max-width:none}}
 #map.live{height:min(70vh,520px)}
 .nojs{font:14px/1.45 var(--sans);background:var(--box);border-radius:8px;padding:12px 14px;margin:24px 0 0}
 .leaflet-container{font-family:var(--sans)}
@@ -117,7 +115,7 @@ function ensure0(el){
   if(el.dataset.ebg)jobs.push(dec(el.dataset.ebg).then(d=>{el.style.backgroundImage='url('+URL.createObjectURL(new Blob([d],{type:'image/jpeg'}))+')'}));
   return Promise.all(jobs).catch(()=>{})}
 async function unlock(p){KEY=await derive(p);
-  const data=JSON.parse(new TextDecoder().decode(await dec('payload.bin?v=90f551d493ed')));
+  const data=JSON.parse(new TextDecoder().decode(await dec('payload.bin?v=7f268d5d19bd')));
   try{localStorage.setItem('trip-p',p)}catch(e){}
   document.title=data.title;document.getElementById('gate').remove();
   document.getElementById('app').outerHTML=data.body;window.__MAP=data.map;
